@@ -67,7 +67,7 @@ def jira_tool(query: str) -> str :
         try:
             server_params = StdioServerParameters(
                 command="node",
-                args = ["C:\\Users\\user\\Desktop\\AgenticAI Project\\Mcp_SN_EL_Proj\\jira-mcp\\index.js"],
+                args = ["C://Users//user//Desktop//AgenticAI Project//Mcp_SN_EL_Proj//jira-mcp//index.js"],
                 env= {
                     "JIRA_INSTANCE_URL": "https://reubenvinod.atlassian.net",
                     "JIRA_USER_EMAIL": "reubenvinod@gmail.com",
@@ -170,8 +170,9 @@ llm = llm.bind_tools(tools).with_config(
         "- ElasticSearch (`elastic_tool`) - Accepts natural language queries for Elastic logs, metrics, or errors\n"
         "- ServiceNow (`servicenow_tool`) - Accepts natural language queries for servicenow incidents or issues\n"
         "- Overall Status (`overall_status`) - Calls all other tools at once\n\n"
-        "Use `elastic_tool` when the user asks any ElasticSearch-related question like 'list indices', 'search logs', or 'error trends'."
-        "All Elastic Operations that end user may ask are all supported by elastic_tool"
+        "Use `jira_tool` when the user asks any JIRA-related question \n\n"
+        "Use `elastic_tool` when the user asks any ElasticSearch-related question like 'list indices', 'search logs', or 'error trends\n\n"
+        "All Elastic Operations that end user may ask are all supported by elastic_tool\n\n"
     )
 )
 
