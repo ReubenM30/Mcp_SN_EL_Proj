@@ -1,0 +1,5 @@
+python -m mcp_server_servicenow.cli --url "https://dev268377.service-now.com/" --username "admin" --password "A72D^ksF$oFc"
+export SERVICENOW_INSTANCE_URL="https://dev268377.service-now.com/"
+export SERVICENOW_USERNAME="admin"
+export SERVICENOW_PASSWORD="A72D^ksF$oFc"
+python -m mcp_server_servicenow.cli
