@@ -1,0 +1,23 @@
+{
+  "name": "jira-mcp",
+  "version": "1.0.1",
+  "main": "index.js",
+  "scripts": {
+    "inspect": "npx @modelcontextprotocol/inspector index.js"
+  },
+  "keywords": [
+    "modelcontextprotocol",
+    "mcp",
+    "jira"
+  ],
+  "bin": {
+    "jira-mcp": "./index.js"
+  },
+  "author": "Camden Clark",
+  "license": "MIT",
+  "description": "",
+  "type": "module",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.4"
+  }
+}

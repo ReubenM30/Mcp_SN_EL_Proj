@@ -58,6 +58,40 @@ def overall_status(AppID: str) -> str:
     return f"📊 **Overall Status for AppID {AppID}**:\n\n{sonar}\n{splunk}\n{appdynamics}"
 
 @tool
+def jira_tool(query: str) -> str :
+    """
+    Forwards any JIRA requests MCP tool server.
+    """
+
+    async def run_jira_agent():
+        try:
+            server_params = StdioServerParameters(
+                command="node",
+                args = ["C:\\Users\\user\\Desktop\\AgenticAI Project\\Mcp_SN_EL_Proj\\jira-mcp\\index.js"],
+                env= {
+                    "JIRA_INSTANCE_URL": "https://reubenvinod.atlassian.net",
+                    "JIRA_USER_EMAIL": "reubenvinod@gmail.com",
+                    "JIRA_API_KEY": "ATATT3xFfGF00VC9dcIlhv-06AWry6YZCd8Z2Zb3xKxsMfdZrjT9-p0mKmhGCR-NNMK_iXJKkOzvIfc4lYp4uadodwiPT1ybTkX5enLmZemq2RTNVyOR9cNvH8FfGUKOrVJSD0qrSHEJjDVVuRco77s8XLsUUdcM7yN2LOMPxmGJ9SeNso99ouY=33EFB942"
+                }
+            )
+            
+            async with stdio_client(server_params) as (read, write):
+                async with ClientSession(read, write) as session:
+                    await session.initialize()
+                    tools = await load_mcp_tools(session)
+
+                    model = ChatOpenAI(model="gpt-4o", temperature=0, openai_api_key=openai_api_key)
+                    agent = create_react_agent(model, tools)
+
+                    result = await agent.ainvoke({"messages": query})
+                    return str(result)
+
+        except Exception as e:
+            return f"❌ Jira failed: {str(e)}"
+
+    return asyncio.run(run_jira_agent())
+
+@tool
 def servicenow_tool(query: str) -> str :
     """
     Forwards any ServiceNow related natural language query to a locally running MCP tool server.
@@ -124,7 +158,7 @@ def elastic_tool(query: str) -> str:
 
 # ---------------------- Register Tools ----------------------
 
-tools = [sonar_status, splunk_status, appdynamics_status, overall_status, elastic_tool, servicenow_tool]
+tools = [sonar_status, splunk_status, appdynamics_status, overall_status, elastic_tool, jira_tool,servicenow_tool]
 
 llm = llm.bind_tools(tools).with_config(
     system_prompt=(
