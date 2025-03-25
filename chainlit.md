@@ -1,14 +1,17 @@
-# Welcome to Chainlit! 🚀🤖
+# Welcome to Your Personal Assistant 🚀
 
-Hi there, Developer! 👋 We're excited to have you on board. Chainlit is a powerful tool designed to help you prototype, debug and share applications built on top of LLMs.
+This assistant is designed to enhance productivity by providing seamless access to ServiceNow incidents, Jira tickets, and Elasticsearch queries. With intelligent search capabilities and embedded skills, it streamlines information retrieval, helping you find exactly what you need with minimal effort.
 
-## Useful Links 🔗
+## Key Features 🔍
 
-- **Documentation:** Get started with our comprehensive [Chainlit Documentation](https://docs.chainlit.io) 📚
-- **Discord Community:** Join our friendly [Chainlit Discord](https://discord.gg/k73SQ3FyUh) to ask questions, share your projects, and connect with other developers! 💬
+**ServiceNow Integration** – Efficiently search and manage incidents.
 
-We can't wait to see what you create with Chainlit! Happy coding! 💻😊
+**Jira Ticket Lookup** – Instantly locate relevant tickets.
 
-## Welcome screen
+**Elasticsearch Support** – Navigate logs and indexed data with precision.
 
-To modify the welcome screen, edit the `chainlit.md` file at the root of your project. If you do not want a welcome screen, just leave this file empty.
+## Getting Started
+
+Simply enter your query, and the assistant will handle the rest. Whether you're tracking issues, troubleshooting, or analyzing data, this tool ensures a faster and more efficient workflow.
+
+Let’s simplify the way you work. 💡

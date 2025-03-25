@@ -19,6 +19,8 @@ from langgraph.prebuilt import create_react_agent
 # Load environment variables
 load_dotenv()
 openai_api_key = os.getenv("OPENAI_API_KEY")
+anthropic_api_key = os.getenv("ANTHROPIC_API_KEY")
+
 if not openai_api_key:
     raise ValueError("Missing OPENAI_API_KEY in .env!")
 
@@ -31,6 +33,14 @@ llm = ChatOpenAI(
     temperature=0,
     openai_api_key=openai_api_key
 )
+
+# from langchain.chat_models import ChatAnthropic
+
+# llm = ChatAnthropic(
+#     model_name="claude-3-sonnet-20240229",
+#     temperature=0,
+#     anthropic_api_key=anthropic_api_key
+# )
 
 # ---------------------- Tool Definitions ----------------------
 
@@ -100,10 +110,10 @@ def servicenow_tool(query: str) -> str :
     async def run_servicenow_agent():
         try:
             server_params = StdioServerParameters(
-                command="C://Users//user//AppData//Local//Programs//Python//Python313//python.exe",
+                command= "C:\\Users\\user\\AppData\\Local\\Programs\\Python\\Python313\\python",
                 args=[
                     "-m",
-                    "mcp_server_servicenow.cli",
+                    "servicenow-mcp.servicenow-mcp",
                     "--url", "https://dev268377.service-now.com/",
                     "--username", "admin",
                     "--password", "A72D^ksF$oFc"
@@ -125,7 +135,6 @@ def servicenow_tool(query: str) -> str :
             return f"❌ ServiceNow failed: {str(e)}"
 
     return asyncio.run(run_servicenow_agent())
-
 
 
 @tool
@@ -167,12 +176,12 @@ llm = llm.bind_tools(tools).with_config(
         "- SonarQube (`sonar_status`)\n"
         "- Splunk (`splunk_status`)\n"
         "- AppDynamics (`appdynamics_status`)\n"
-        "- ElasticSearch (`elastic_tool`) - Accepts natural language queries for Elastic logs, metrics, or errors\n"
+        "- ElasticSearch (`elastic_tool`) - Accepts natural language queries for Elastic logs, metrics, or errors and summarise it in a very human readable format with bullet points wherever possible\n"
         "- ServiceNow (`servicenow_tool`) - Accepts natural language queries for servicenow incidents or issues\n"
-        "- Overall Status (`overall_status`) - Calls all other tools at once\n\n"
+        "- Overall Status (`overall_status`) - Calls all other tools at once and summarise it in a very human readable format with bullet points wherever possible\n\n"
         "Use `jira_tool` when the user asks any JIRA-related question \n\n"
         "Use `elastic_tool` when the user asks any ElasticSearch-related question like 'list indices', 'search logs', or 'error trends\n\n"
-        "All Elastic Operations that end user may ask are all supported by elastic_tool\n\n"
+        "All Elastic Operations that end user may ask are all supported by elastic_tool and summarise it in a very human readable format with bullet points wherever possible\n\n"
     )
 )
 
@@ -220,6 +229,21 @@ builder.add_edge("final", END)
 graph = builder.compile()
 
 # ---------------------- Chainlit Integration ----------------------
+
+import chainlit as cl
+from mcp import ClientSession
+
+@cl.on_mcp_connect
+async def on_mcp_connect(connection, session: ClientSession):
+    """Called when an MCP connection is established"""
+    # Your connection initialization code here
+    # This handler is required for MCP to work
+    
+@cl.on_mcp_disconnect
+async def on_mcp_disconnect(name: str, session: ClientSession):
+    """Called when an MCP connection is terminated"""
+    # Your cleanup code here
+    # This handler is optional
 
 def get_chat_history(new_message):
     # Initialize history if not already present
