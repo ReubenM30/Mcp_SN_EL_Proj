@@ -19,7 +19,6 @@ from langgraph.prebuilt import create_react_agent
 # Load environment variables
 load_dotenv()
 openai_api_key = os.getenv("OPENAI_API_KEY")
-anthropic_api_key = os.getenv("ANTHROPIC_API_KEY")
 
 if not openai_api_key:
     raise ValueError("Missing OPENAI_API_KEY in .env!")
@@ -34,38 +33,8 @@ llm = ChatOpenAI(
     openai_api_key=openai_api_key
 )
 
-# from langchain.chat_models import ChatAnthropic
-
-# llm = ChatAnthropic(
-#     model_name="claude-3-sonnet-20240229",
-#     temperature=0,
-#     anthropic_api_key=anthropic_api_key
-# )
 
 # ---------------------- Tool Definitions ----------------------
-
-@tool
-def sonar_status(AppID: str) -> str:
-    """Fetches the SonarQube analysis report for the given AppID."""
-    return f"✅ SonarQube Analysis for AppID {AppID}: Passed with 2 critical issues."
-
-@tool
-def splunk_status(AppID: str) -> str:
-    """Fetches the latest logs from Splunk for the given AppID."""
-    return f"✅ Splunk Status for AppID {AppID}: No major errors found in the last 24 hours."
-
-@tool
-def appdynamics_status(AppID: str) -> str:
-    """Fetches the latest application performance insights from AppDynamics for the given AppID."""
-    return f"✅ AppDynamics Status for AppID {AppID}: Memory usage at 70%, CPU stable."
-
-@tool
-def overall_status(AppID: str) -> str:
-    """Fetches an overall health report by aggregating results from SonarQube, Splunk, and AppDynamics."""
-    sonar = sonar_status(AppID)
-    splunk = splunk_status(AppID)
-    appdynamics = appdynamics_status(AppID)
-    return f"📊 **Overall Status for AppID {AppID}**:\n\n{sonar}\n{splunk}\n{appdynamics}"
 
 @tool
 def jira_tool(query: str) -> str :
@@ -110,13 +79,9 @@ def servicenow_tool(query: str) -> str :
     async def run_servicenow_agent():
         try:
             server_params = StdioServerParameters(
-                command= "C:\\Users\\user\\AppData\\Local\\Programs\\Python\\Python313\\python",
+                command= "python",
                 args=[
-                    "-m",
-                    "servicenow-mcp.servicenow-mcp",
-                    "--url", "https://dev268377.service-now.com/",
-                    "--username", "admin",
-                    "--password", "A72D^ksF$oFc"
+                    "servicenow.py",
                 ],
             )
             
@@ -135,7 +100,6 @@ def servicenow_tool(query: str) -> str :
             return f"❌ ServiceNow failed: {str(e)}"
 
     return asyncio.run(run_servicenow_agent())
-
 
 @tool
 def elastic_tool(query: str) -> str:
@@ -167,7 +131,7 @@ def elastic_tool(query: str) -> str:
 
 # ---------------------- Register Tools ----------------------
 
-tools = [sonar_status, splunk_status, appdynamics_status, overall_status, elastic_tool, jira_tool,servicenow_tool]
+tools = [elastic_tool, jira_tool,servicenow_tool]
 
 llm = llm.bind_tools(tools).with_config(
     system_prompt=(
@@ -252,7 +216,6 @@ def get_chat_history(new_message):
     cl.user_session.chat_history.append(new_message)
     return cl.user_session.chat_history
 
-
 @cl.on_message
 async def on_message(msg: cl.Message):
     config = {"configurable": {"thread_id": cl.context.session.id}}
@@ -261,17 +224,46 @@ async def on_message(msg: cl.Message):
 
     input_messages = get_chat_history(HumanMessage(content=msg.content))
 
-    full_response = ""
+    full_response = []
     async for msg, metadata in graph.astream(
         {"messages": input_messages},
         stream_mode="messages",
         config=RunnableConfig(callbacks=[cb], **config),
     ):
-        if msg.content.strip():
-            print(f"🟡 [DEBUG] Streaming Step: {msg.content}")
-            full_response += msg.content
-            await final_answer.stream_token(msg.content)
+        if isinstance(msg, AIMessage):  # Extract AI response only
+            text = msg.content.strip()
+            if text:
+                full_response.append(text)
+                await final_answer.stream_token(" " + text)  # Add space only between tokens
 
-    final_answer.content = full_response.strip() or "⚠️ No response generated! Please try again."
+    # Properly join words but prevent double spacing
+    final_answer.content = " ".join(full_response).replace("  ", " ").strip()
+
     cl.user_session["chat_history"].append(final_answer)
     await final_answer.send()
+
+
+
+# @cl.on_message
+# async def on_message(msg: cl.Message):
+#     config = {"configurable": {"thread_id": cl.context.session.id}}
+#     cb = cl.LangchainCallbackHandler()
+#     final_answer = cl.Message(content="")
+
+#     input_messages = get_chat_history(HumanMessage(content=msg.content))
+
+#     full_response = ""
+#     async for msg, metadata in graph.astream(
+#         {"messages": input_messages},
+#         stream_mode="messages",
+#         config=RunnableConfig(callbacks=[cb], **config),
+#     ):
+#         if msg.content.strip():
+#             #print(f"🟡 [DEBUG] Streaming Step: {msg.content}")
+#             full_response += msg.content
+#             await final_answer.stream_token(msg.content)
+
+#     final_answer.content = full_response.strip() or "⚠️ No response generated! Please try again."
+#     cl.user_session["chat_history"].append(final_answer)
+#     await final_answer.send()
+
